@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(cuid())
+  name         String?
+  email        String          @unique
+  image        String?         // Avatar URL (nếu muốn dùng NextAuth hoặc upload avatar)
+  createdAt    DateTime        @default(now())
+
+  // Relations
+  conversations Conversation[]
+  feedbacks    Feedback[]
+}
+
+model Conversation {
+  id          String      @id @default(cuid())
+  title       String      @default("New Conversation")
+  userId      String
+  createdAt   DateTime    @default(now())
+
+  // Relations
+  feedbacks   Feedback[]
+  user        User        @relation(fields: [userId], references: [id])
+}
+
+model Feedback {
+  id             String        @id @default(cuid())
+  userId         String
+  conversationId String?
+  inputText      String
+  outputText     String
+  mode           FeedbackMode  @default(GENERAL)    // Phản hồi theo loại AI Mode (Grammar, Idea, etc.)
+  rating         Int?                                // Optional: 1-5 rating
+  liked          Boolean?                            // Optional: User Like/Dislike
+  createdAt      DateTime       @default(now())
+
+  // Relations
+  user           User          @relation(fields: [userId], references: [id])
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+}
+
+enum FeedbackMode {
+  GENERAL
+  GRAMMAR_CHECK
+  IDEA_GENERATION
+  CREATIVE_WRITING
+  CODE_REVIEW
+}
