@@ -1,12 +1,10 @@
 import Link from "next/link";
 import DesktopNavbar from "./desktop-navbar";
 import MobileNavbar from "./mobile-navbar";
-import { currentUser } from "@clerk/nextjs/server";
-import { getOrCreateUser } from "@/lib/actions/user.action";
+import { SignedIn } from "@clerk/nextjs";
+import ClientSync from "./client-sync";
 
-async function Navbar() {
-  const user = await currentUser();
-  if (user) await getOrCreateUser();
+export default function Navbar() {
 
   return (
     <nav className="sticky top-0 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
@@ -17,16 +15,18 @@ async function Navbar() {
               href="/"
               className="text-xl font-bold text-primary font-mono tracking-wider"
             >
-              Socially
+              AI FEEDBACKS
             </Link>
           </div>
 
           <DesktopNavbar />
           <MobileNavbar />
+
+          <SignedIn>
+            <ClientSync />
+          </SignedIn>
         </div>
       </div>
     </nav>
   );
 }
-
-export default Navbar;

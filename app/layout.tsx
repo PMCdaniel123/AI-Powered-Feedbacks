@@ -3,9 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
-import SidebarConversation from "@/components/sidebar-conversation";
 import Navbar from "@/components/navbar";
 import { Toaster } from "react-hot-toast";
+import { MotionConfig } from "framer-motion";
+import SidebarConversation from "@/components/sidebar-conversation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,17 +41,25 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <div className="min-h-screen">
-              <Navbar />
-              <main className="py-8">
-                <div className="max-w-7xl mx-auto px-4">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    <div className="hidden lg:block lg:col-span-3">
-                      <SidebarConversation />
+              <MotionConfig
+                transition={{
+                  type: "spring",
+                  damping: 20,
+                  stiffness: 100,
+                }}
+              >
+                <Navbar />
+                <main className="py-8">
+                  <div className="max-w-7xl mx-auto px-4">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                      <div className="hidden lg:block lg:col-span-3">
+                        <SidebarConversation />
+                      </div>
+                      <div className="lg:col-span-9">{children}</div>
                     </div>
-                    <div className="lg:col-span-9">{children}</div>
                   </div>
-                </div>
-              </main>
+                </main>
+              </MotionConfig>
             </div>
             <Toaster />
           </ThemeProvider>
