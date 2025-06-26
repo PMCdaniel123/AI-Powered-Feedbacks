@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -16,6 +15,7 @@ datasource db {
 
 model User {
   id           String          @id @default(cuid())
+  clerkId      String          @unique             // ID từ Clerk
   name         String?
   email        String          @unique
   image        String?         // Avatar URL (nếu muốn dùng NextAuth hoặc upload avatar)
