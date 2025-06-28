@@ -49,16 +49,16 @@ export default function RootLayout({
                 }}
               >
                 <Navbar />
-                <main className="py-8">
-                  <div className="max-w-7xl mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                      <div className="hidden lg:block lg:col-span-3">
-                        <SidebarConversation />
-                      </div>
-                      <div className="lg:col-span-9">{children}</div>
-                    </div>
+
+                <div className="flex">
+                  {/* Sidebar */}
+                  <div className="hidden md:block w-64 border-r bg-white">
+                    <SidebarConversation />
                   </div>
-                </main>
+
+                  {/* Main page content */}
+                  <main className="flex-1 min-h-screen p-4">{children}</main>
+                </div>
               </MotionConfig>
             </div>
             <Toaster />

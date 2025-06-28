@@ -1,6 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { getOrCreateUser } from "@/lib/actions/user.action";
 
 export async function POST() {
   try {
@@ -11,20 +11,7 @@ export async function POST() {
       return NextResponse.json({ error: "No user found" }, { status: 401 });
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
-
-    if (existingUser) return NextResponse.json({ success: true, existingUser });
-
-    const dbUser = await prisma.user.create({
-      data: {
-        clerkId: userId,
-        name: clerkUser.firstName,
-        email: clerkUser.emailAddresses[0].emailAddress,
-        image: clerkUser.imageUrl,
-      },
-    });
+    const dbUser = await getOrCreateUser();
 
     return NextResponse.json({ success: true, dbUser });
   } catch (error) {
