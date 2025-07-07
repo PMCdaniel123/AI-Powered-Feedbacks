@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import { MotionConfig } from "framer-motion";
 import SidebarConversation from "@/components/sidebar-conversation";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { GuestProvider } from "@/context/guest-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,20 +51,22 @@ export default function RootLayout({
                     stiffness: 100,
                   }}
                 >
-                  <Navbar />
+                  <GuestProvider>
+                    <Navbar />
 
-                  <div className="flex h-[calc(100vh-4rem)]">
-                    {/* Sidebar */}
-                    <div className="hidden md:block overflow-y-auto">
-                      <SidebarConversation />
+                    <div className="flex h-[calc(100vh-4rem)]">
+                      {/* Sidebar */}
+                      <div className="hidden md:block overflow-y-auto">
+                        <SidebarConversation />
+                      </div>
+
+                      {/* Main page content */}
+                      <main className="p-4">
+                        <SidebarTrigger />
+                        {children}
+                      </main>
                     </div>
-
-                    {/* Main page content */}
-                    <main className="p-4">
-                      <SidebarTrigger />
-                      {children}
-                    </main>
-                  </div>
+                  </GuestProvider>
                 </MotionConfig>
               </div>
             </SidebarProvider>
