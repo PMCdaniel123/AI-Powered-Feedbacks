@@ -1,90 +1,93 @@
-import { createFeedback } from "@/lib/actions/feedback.action";
-import prisma from "@/lib/prisma";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { FeedbackMode } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import prisma from "@/lib/prisma";
+import { FeedbackMode } from "@prisma/client";
+import { getDbUserId } from "@/lib/actions/user.action";
 
-// POST /api/feedback
+// API Create New Feedback: POST /api/feedback
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
+  const { userId } = await auth();
+  const clerkUser = await currentUser();
+  const body = await req.json();
+  const { inputText, outputText, mode, conversationId, rating, liked } = body;
 
-    const { inputText, outputText, mode, conversationId, rating, liked } = body;
+  if (!inputText || !mode) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
 
-    if (
-      !inputText ||
-      !outputText ||
-      !mode ||
-      !conversationId ||
-      typeof rating !== "number" ||
-      typeof liked !== "boolean"
-    ) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+  if (!Object.values(FeedbackMode).includes(mode)) {
+    return NextResponse.json({ error: "Invalid mode" }, { status: 400 });
+  }
+
+  // If user is logged in → save to DB
+  if (userId && clerkUser) {
+    const dbUserId = await getDbUserId();
+    if (!dbUserId) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (!Object.values(FeedbackMode).includes(mode)) {
-      return NextResponse.json({ error: "Invalid mode" }, { status: 400 });
-    }
-
-    const feedback = await createFeedback({
-      inputText,
-      outputText,
-      mode,
-      conversationId,
-      rating,
-      liked,
+    const feedback = await prisma.feedback.create({
+      data: {
+        userId: dbUserId,
+        conversationId,
+        inputText,
+        outputText,
+        mode,
+        rating,
+        liked,
+      },
     });
 
     return NextResponse.json({ success: true, feedback });
-  } catch (error) {
-    console.error("Sync user failed:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
+
+  // Guest user → fake success (frontend tự quản local)
+  return NextResponse.json({ success: true, guest: true });
 }
 
-// GET /api/feedback or /api/feedback?conversationId=...
-export async function GET(req: Request) {
-  try {
-    const { userId } = await auth();
-    const clerkUser = await currentUser();
+// API Update Feedback: PATCH /api/feedback
+export async function PATCH(req: Request) {
+  const { userId } = await auth();
+  const clerkUser = await currentUser();
+  const body = await req.json();
+  const { id, inputText, outputText, mode, conversationId, rating, liked } =
+    body;
 
-    if (!userId || !clerkUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-    });
-
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: "User not found in DB" },
-        { status: 404 }
-      );
-    }
-
-    const url = new URL(req.url);
-    const conversationId = url.searchParams.get("conversationId");
-
-    const feedbacks = await prisma.feedback.findMany({
-      where: {
-        userId: dbUser.id,
-        ...(conversationId ? { conversationId } : {}),
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        conversation: true,
-      },
-    });
-
-    return NextResponse.json({ success: true, feedbacks });
-  } catch (error) {
-    console.error("Get feedback failed:", error);
-    return NextResponse.json({ error: "Failed to get feedbacks" }, { status: 500 });
+  if (!id) {
+    return NextResponse.json({ error: "Missing feedback ID" }, { status: 400 });
   }
+
+  if (!inputText || !mode) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  if (!Object.values(FeedbackMode).includes(mode)) {
+    return NextResponse.json({ error: "Invalid mode" }, { status: 400 });
+  }
+
+  // If user is logged in → update in DB
+  if (userId && clerkUser) {
+    const dbUserId = await getDbUserId();
+    if (!dbUserId) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const feedback = await prisma.feedback.update({
+      where: { id },
+      data: {
+        userId: dbUserId,
+        conversationId,
+        inputText,
+        outputText,
+        mode,
+        rating,
+        liked,
+      },
+    });
+
+    return NextResponse.json({ success: true, feedback });
+  }
+
+  // Guest user → fake success (frontend tự quản local)
+  return NextResponse.json({ success: true, guest: true });
 }

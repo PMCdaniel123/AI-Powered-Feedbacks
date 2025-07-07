@@ -7,6 +7,7 @@ import Navbar from "@/components/navbar";
 import { Toaster } from "react-hot-toast";
 import { MotionConfig } from "framer-motion";
 import SidebarConversation from "@/components/sidebar-conversation";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,27 +41,32 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="min-h-screen">
-              <MotionConfig
-                transition={{
-                  type: "spring",
-                  damping: 20,
-                  stiffness: 100,
-                }}
-              >
-                <Navbar />
+            <SidebarProvider>
+              <div className="h-screen overflow-hidden">
+                <MotionConfig
+                  transition={{
+                    type: "spring",
+                    damping: 20,
+                    stiffness: 100,
+                  }}
+                >
+                  <Navbar />
 
-                <div className="flex">
-                  {/* Sidebar */}
-                  <div className="hidden md:block w-64 border-r bg-white">
-                    <SidebarConversation />
+                  <div className="flex h-[calc(100vh-4rem)]">
+                    {/* Sidebar */}
+                    <div className="hidden md:block overflow-y-auto">
+                      <SidebarConversation />
+                    </div>
+
+                    {/* Main page content */}
+                    <main className="p-4">
+                      <SidebarTrigger />
+                      {children}
+                    </main>
                   </div>
-
-                  {/* Main page content */}
-                  <main className="flex-1 min-h-screen p-4">{children}</main>
-                </div>
-              </MotionConfig>
-            </div>
+                </MotionConfig>
+              </div>
+            </SidebarProvider>
             <Toaster />
           </ThemeProvider>
         </body>

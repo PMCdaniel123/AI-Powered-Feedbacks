@@ -30,3 +30,28 @@ export async function getOrCreateUser() {
     console.log("Failed to get or create user", error);
   }
 }
+
+export async function getUserByClerkId(clerkId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { clerkId },
+    });
+    return user;
+  } catch (error) {
+    console.log("Failed to get user by Clerk ID", error);
+  }
+}
+
+export async function getDbUserId() {
+  try {
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    const user = await getUserByClerkId(userId);
+    if (!user) return null;
+
+    return user.id;
+  } catch (error) {
+    console.log("Failed to get DB user ID", error);
+  }
+}
